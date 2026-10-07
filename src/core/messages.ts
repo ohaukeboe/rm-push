@@ -1,3 +1,4 @@
+import "./zod-setup";
 import { z } from "zod";
 import { MAX_UPLOAD_BYTES, type SendError } from "./errors";
 

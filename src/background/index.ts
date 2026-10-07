@@ -1,3 +1,4 @@
+import "../core/zod-setup";
 import { cryptoIds, systemClock } from "../adapters/browser/clock";
 import { browserHttp } from "../adapters/browser/http";
 import { canvasImageCodec } from "../adapters/browser/image";

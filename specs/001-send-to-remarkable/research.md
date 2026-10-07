@@ -98,6 +98,16 @@ the plan and must be proven by an early spike or E2E test.
   These are undocumented internal endpoints: expect breakage.
 - **OneDrive personal** (`onedrive.live.com`, `1drv.ms`): no cookie-based PDF conversion found;
   Graph needs an Entra app registration. **Not supported directly.**
+- **Update 2026-10-07 (rm-push-aqy, abandoned)**: personal documents open at
+  `https://word.cloud.microsoft/open/onedrive/?docId=<cid>!s<guid>&driveId=<cid>` and are stored
+  at `my.microsoftpersonalcontent.com`. A live probe with the user's session returned
+  `401 Unauthenticated` for every cookie-only request (`_api/v2.0/.../content?format=pdf`,
+  `GetFileById`, `download.aspx`, `api.onedrive.com`). Word authenticates with
+  `Authorization: Bearer` (POSTs from origin `word.cloud.microsoft` to
+  `/_api/v2.0/drives/<driveId>/items/<itemId>/`). Capturing that header with `webRequest` was
+  tried: Firefox reported Word's POST to the extension, but without the `Authorization` header
+  (likely sent from a worker), so no token was ever seen. Not pursued further; personal
+  documents keep the guided "Download as PDF" fallback.
 - **Decision**: Implement SharePoint/ODfB export. For OneDrive personal, `word.cloud.microsoft`
   redirect pages, and any SharePoint failure: show guided fallback ("In Word choose File →
   Export → Download as PDF, then drop the file here") opening the Upload-a-file page (R6).
