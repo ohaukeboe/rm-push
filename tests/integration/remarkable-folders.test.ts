@@ -4,6 +4,10 @@ import { RemarkableError } from "../../src/adapters/ports";
 import { createRemarkable } from "../../src/adapters/remarkable";
 import { FakeStorage } from "../fakes/browser";
 import { VALID_CODE } from "../fakes/remarkable";
+import {
+	seedRawDocument,
+	UNPARSEABLE_DOCUMENT_CONTENT,
+} from "../fakes/remarkable-seed";
 import { MINIMAL_PDF, startFakeServer } from "../fakes/server";
 
 const server = startFakeServer();
@@ -51,6 +55,77 @@ describe("listFolders", () => {
 			"Work / Reports",
 		]);
 		expect(folders.find((f) => f.name === "Work")?.id).toBe(work.id);
+	});
+});
+
+describe("libraries with documents rmapi-js cannot parse (rm-push-zpb)", () => {
+	beforeEach(async () => {
+		await seedRawDocument(cloud, {
+			id: "11111111-2222-4333-8444-555555555555",
+			metadata: {
+				parent: "",
+				pinned: false,
+				type: "DocumentType",
+				visibleName: "Old document",
+				lastModified: "1700000000000",
+			},
+			content: UNPARSEABLE_DOCUMENT_CONTENT,
+		});
+	});
+
+	test("the seed reproduces the real failure in rmapi-js listItems", async () => {
+		await expect(cloud.listItems(true)).rejects.toThrow();
+	});
+
+	test("folder listing still works", async () => {
+		const inbox = await cloud.putFolder("Inbox");
+		expect(await port.listFolders(token)).toEqual([
+			{ id: inbox.id, name: "Inbox", parentId: "" },
+		]);
+	});
+
+	test("upload into a folder still lands in the folder", async () => {
+		const inbox = await cloud.putFolder("Inbox");
+		const result = await port.upload(token, doc, inbox.id);
+		expect(result.fellBackToRoot).toBe(false);
+		expect(server.remarkable.state.simpleUploads).toHaveLength(0);
+	});
+});
+
+describe("request cost on a large library (rm-push-zpb)", () => {
+	const fileGets = () =>
+		server.requests.filter((r) => r.startsWith("GET /sync/v3/files/")).length;
+
+	beforeEach(async () => {
+		for (let n = 0; n < 30; n++) {
+			await seedRawDocument(cloud, {
+				id: `00000000-0000-4000-8000-${n.toString().padStart(12, "0")}`,
+				metadata: {
+					parent: "",
+					pinned: false,
+					type: "DocumentType",
+					visibleName: `Doc ${n}`,
+				},
+				content: UNPARSEABLE_DOCUMENT_CONTENT,
+			});
+		}
+	});
+
+	test("upload into a folder checks only that folder, not every item", async () => {
+		const work = await cloud.putFolder("Work");
+		const inbox = await cloud.putFolder("Inbox", { parent: work.id });
+		server.requests.length = 0;
+		await port.upload(token, doc, inbox.id);
+		// root index + the folder and its parent (index + metadata each); not 2 per item.
+		expect(fileGets()).toBeLessThanOrEqual(8);
+	});
+
+	test("a second listing reuses cached item data", async () => {
+		await cloud.putFolder("Inbox");
+		await port.listFolders(token);
+		server.requests.length = 0;
+		expect(await port.listFolders(token)).toHaveLength(1);
+		expect(fileGets()).toBeLessThanOrEqual(1);
 	});
 });
 
