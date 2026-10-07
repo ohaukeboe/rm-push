@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Upload to reMarkable</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<h1>Upload a file to reMarkable</h1>
+		<p id="instructions"></p>
+		<label id="drop" class="drop" for="file">
+			<span>Drop a PDF or EPUB here, or click to choose a file.</span>
+			<input id="file" type="file" accept=".pdf,.epub,application/pdf,application/epub+zip" hidden />
+		</label>
+		<p id="result"></p>
+		<button id="close" type="button" hidden>Close tab</button>
+		<script type="module" src="upload.js"></script>
+	</body>
+</html>

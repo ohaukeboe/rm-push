@@ -1,0 +1,51 @@
+{
+	"manifest_version": 3,
+	"name": "Send to reMarkable",
+	"version": "0.1.0",
+	"description": "Send PDFs, web pages, Google Docs and Word documents to your reMarkable cloud.",
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "rm-push@ohaukeboe",
+			"strict_min_version": "142.0",
+			"data_collection_permissions": {
+				"required": ["none"]
+			}
+		}
+	},
+	"background": {
+		"scripts": ["background.js"],
+		"type": "module"
+	},
+	"action": {
+		"default_title": "Send to reMarkable",
+		"default_popup": "popup.html",
+		"default_icon": "icon.svg"
+	},
+	"options_ui": {
+		"page": "options.html",
+		"open_in_tab": true
+	},
+	"permissions": [
+		"storage",
+		"activeTab",
+		"scripting",
+		"menus",
+		"notifications"
+	],
+	"host_permissions": [
+		"https://webapp-prod.cloud.remarkable.engineering/*",
+		"https://eu.tectonic.remarkable.com/*",
+		"https://internal.cloud.remarkable.com/*"
+	],
+	"optional_host_permissions": [
+		"*://docs.google.com/*",
+		"*://*.googleusercontent.com/*",
+		"*://*.sharepoint.com/*",
+		"*://*.svc.ms/*",
+		"<all_urls>"
+	],
+	"icons": {
+		"48": "icon.svg",
+		"96": "icon.svg"
+	}
+}

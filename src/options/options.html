@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Send to reMarkable</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<h1>Send to reMarkable</h1>
+
+		<section id="pairing" hidden>
+			<h2>Connect your reMarkable account</h2>
+			<p>
+				Open
+				<a href="https://my.remarkable.com/device/browser/connect" target="_blank" rel="noopener"
+					>my.remarkable.com/device/browser/connect</a
+				>, sign in, and copy the 8-letter code shown there.
+			</p>
+			<p id="revoked-note" class="error" hidden>
+				reMarkable rejected the connection. Pair again with a new code.
+			</p>
+			<form id="pair-form" class="row">
+				<input id="code" type="text" maxlength="12" autocomplete="off" placeholder="abcdefgh" />
+				<button id="connect" class="primary" type="submit">Connect</button>
+			</form>
+			<p id="pair-error" class="error"></p>
+		</section>
+
+		<section id="connected" hidden>
+			<h2>Account</h2>
+			<p id="connected-since"></p>
+			<button id="disconnect" type="button">Disconnect</button>
+		</section>
+
+		<section id="folders" hidden>
+			<h2>Default destination</h2>
+			<div class="row">
+				<select id="default-folder">
+					<option value="">Top level</option>
+				</select>
+				<button id="refresh-folders" type="button">Refresh</button>
+			</div>
+			<p id="folder-saved" class="muted"></p>
+			<p id="folder-error" class="error"></p>
+		</section>
+
+		<section id="site-access">
+			<h2>Site access</h2>
+			<p class="muted">
+				Firefox only lets the extension read documents from sites you allow. Access is used only
+				to download the document you send.
+			</p>
+			<div id="access-rows"></div>
+		</section>
+
+		<script type="module" src="options.js"></script>
+	</body>
+</html>

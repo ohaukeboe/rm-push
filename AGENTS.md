@@ -126,3 +126,48 @@ bd prime                # Refresh Beads context
 
 **Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/core-concepts/sync-concepts.md for details and anti-patterns.
 <!-- END BEADS CODEX SETUP -->
+
+## Build & Test
+
+All tools come from `shell.nix` (bun, firefox, geckodriver, web-ext, biome, typescript). Run
+everything inside `nix-shell` (or direnv with `use nix`).
+
+```bash
+nix-shell
+bun install --frozen-lockfile
+bun run check       # biome + tsc --noEmit
+bun run test        # unit + integration (bun test, happy-dom, local fake servers)
+bun run build       # dist/ (production extension)
+bun run test:e2e    # builds dist-e2e/ and drives headless Firefox via Selenium
+bun run lint:ext    # web-ext lint, warnings are errors except audited ones in scripts/lint-ext.ts
+bun run package     # web-ext-artifacts/*.zip
+bun run ci          # all of the above, in order
+bun run dev         # web-ext run with dist/ in the nix Firefox
+```
+
+Spec, plan and design docs: `specs/001-send-to-remarkable/`.
+
+## Architecture Overview
+
+Firefox MV3 extension that sends PDFs, web pages (EPUB or printed PDF), Google Docs and
+SharePoint Word documents to the reMarkable cloud. No server and no native host: the bundled
+`rmapi-js` talks to the cloud.
+
+- `src/core/`: pure logic, no `browser.*` (classification, titles, errors, zod message schemas,
+  fetchers for each source kind, EPUB building, the send-job runner).
+- `src/adapters/`: the only code touching the outside world. `ports.ts` defines the interfaces;
+  `browser/*` wrap `browser.*`; `remarkable.ts` is the only importer of `rmapi-js`.
+- Entry points: `src/background/` (event page; `router.ts` validates and dispatches messages and
+  menu clicks), `src/content/extract.ts` (Readability, injected on demand), `src/popup/`,
+  `src/options/`, `src/upload/` (file picker for printed PDFs, local files and the Word fallback).
+- `build.ts` bundles with `Bun.build`; `--e2e` points every remote host at the local fake server
+  (`tests/fakes/`) and enables test-only hooks.
+
+## Conventions & Patterns
+
+- Test-first (constitution). Unit tests in `tests/unit`, integration in `tests/integration`, E2E in
+  `tests/e2e`. Tests never reach live services; use `tests/fakes/server.ts`.
+- New `browser.*` calls go in an adapter behind a port; core code gets ports injected.
+- Every cross-context message has a zod schema in `src/core/messages.ts`, validated by the receiver.
+- New permissions must be justified in the feature plan (least privilege); optional host
+  permissions are requested from a user gesture in the popup or options page.

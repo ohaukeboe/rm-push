@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"strict": true,
+		"noEmit": true,
+		"target": "ES2022",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"types": ["firefox-webext-browser", "bun"],
+		"skipLibCheck": true,
+		"noUncheckedIndexedAccess": true,
+		"verbatimModuleSyntax": true,
+		"resolveJsonModule": true
+	},
+	"include": ["src", "tests", "build.ts", "scripts"]
+}

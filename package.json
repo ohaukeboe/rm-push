@@ -1,0 +1,31 @@
+{
+	"name": "rm-push",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"check": "biome check . && tsc --noEmit",
+		"build": "bun build.ts",
+		"build:e2e": "bun build.ts --e2e",
+		"test": "bun test tests/unit tests/integration",
+		"test:e2e": "bun run build:e2e && bun test tests/e2e",
+		"lint:ext": "bun scripts/lint-ext.ts dist",
+		"package": "web-ext build -s dist --overwrite-dest",
+		"dev": "web-ext run -s dist --firefox=$FIREFOX_BIN",
+		"ci": "bun run check && bun run test && bun run build && bun run test:e2e && bun run lint:ext && bun run package"
+	},
+	"dependencies": {
+		"@mozilla/readability": "^0.6.0",
+		"rmapi-js": "^14.4.0",
+		"teapub": "^4.1.0",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@happy-dom/global-registrator": "^20.14.5",
+		"@types/bun": "^1.4.2",
+		"@types/firefox-webext-browser": "^143.0.1",
+		"@types/selenium-webdriver": "^4.35.7",
+		"jszip": "^3.10.1",
+		"selenium-webdriver": "^4.50.0"
+	}
+}

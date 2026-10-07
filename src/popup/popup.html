@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Send to reMarkable</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body class="popup">
+		<h1>Send to reMarkable</h1>
+
+		<section id="connect-prompt" hidden>
+			<p id="connect-text">Connect your reMarkable account to start sending.</p>
+			<button id="open-options" class="primary" type="button">Connect</button>
+		</section>
+
+		<section id="send-panel" hidden>
+			<p id="current"><span id="current-kind" class="muted"></span> <span id="current-title"></span></p>
+			<p id="unsendable" hidden>This page cannot be sent.</p>
+			<div id="grant" hidden>
+				<p id="grant-text" class="muted"></p>
+				<button id="grant-button" type="button">Grant access</button>
+			</div>
+			<div class="row" id="destination-row" hidden>
+				<label for="destination">To</label>
+				<select id="destination"></select>
+			</div>
+			<div class="row">
+				<button id="send" class="primary" type="button">Send</button>
+				<button id="send-print" type="button" hidden>Send as printed PDF</button>
+			</div>
+			<p id="send-result"></p>
+			<h2>Recent</h2>
+			<ul id="jobs" class="jobs"></ul>
+			<p><button id="upload-link" class="link" type="button">Upload a file…</button></p>
+		</section>
+
+		<script type="module" src="popup.js"></script>
+	</body>
+</html>
