@@ -50,7 +50,8 @@ describe("fetchPdf", () => {
 		});
 		const http404 = cannedHttp({ [url]: { status: 404 } });
 		expect(await failure(fetchPdf(http404, url))).toEqual({
-			kind: "service-error",
+			kind: "source-error",
+			host: "example.com",
 			status: 404,
 		});
 	});

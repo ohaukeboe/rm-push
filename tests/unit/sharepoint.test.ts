@@ -10,15 +10,10 @@ import { FakePermissions, FakeTabs } from "../fakes/browser";
 import { cannedHttp } from "../fakes/http";
 
 const PDF = new TextEncoder().encode("%PDF-1.4 x");
-const SITE = "https://contoso.sharepoint.com/sites/Team";
-const GUID = "1A2B3C4D-0000-1111-2222-333344445555";
-const LOOKUP = `${SITE}/_api/web/GetFileById('${GUID}')?$select=ServerRelativeUrl`;
-const EXPORT =
-	"https://contoso.sharepoint.com/_api/v2.0/sites/contoso.sharepoint.com:/sites/Team:/drive/root:/Plans/Q4%20Plan.docx:/content?format=PDF";
-const json = (value: unknown) => ({
-	contentType: "application/json",
-	bytes: new TextEncoder().encode(JSON.stringify(value)),
-});
+const SITE = "https://contoso-my.sharepoint.com/personal/me_contoso_no";
+const GUID = "8810A250-0678-4934-9FFE-338012CAA8AC";
+// Verified against a real OneDrive for Business account (2026-10-07).
+const EXPORT = `${SITE}/_api/v2.0/drive/items/${GUID}/content?format=pdf`;
 
 let permissions: FakePermissions;
 beforeEach(() => {
@@ -50,52 +45,32 @@ const run = (table: Parameters<typeof cannedHttp>[0]) =>
 	});
 
 describe("sharepointExportUrl", () => {
-	test("path is relative to the default document library", () => {
-		expect(
-			sharepointExportUrl(
-				SITE,
-				"/sites/Team/Shared Documents/Plans/Q4 Plan.docx",
-			),
-		).toBe(EXPORT);
+	test("converts the item by its GUID on the site's drive", () => {
+		expect(sharepointExportUrl(SITE, GUID)).toBe(EXPORT);
 	});
 
-	test("personal OneDrive for Business site", () => {
-		expect(
-			sharepointExportUrl(
-				"https://contoso-my.sharepoint.com/personal/me_contoso_com",
-				"/personal/me_contoso_com/Documents/a.docx",
-			),
-		).toBe(
-			"https://contoso-my.sharepoint.com/_api/v2.0/sites/contoso-my.sharepoint.com:/personal/me_contoso_com:/drive/root:/a.docx:/content?format=PDF",
-		);
+	test("tolerates a trailing slash on the site", () => {
+		expect(sharepointExportUrl(`${SITE}/`, GUID)).toBe(EXPORT);
 	});
 });
 
 describe("exportSharepointWord", () => {
-	test("looks up the file path, then downloads the PDF conversion", async () => {
-		const result = await run({
-			[LOOKUP]: json({
-				ServerRelativeUrl: "/sites/Team/Shared Documents/Plans/Q4 Plan.docx",
-			}),
+	test("downloads the PDF conversion in one request", async () => {
+		const http = cannedHttp({
 			[EXPORT]: {
 				finalUrl: "https://euc-mediap.svc.ms/transform/pdf?provider=spo",
 				contentType: "application/pdf",
 				bytes: PDF,
 			},
 		});
-		expect(result).toEqual(PDF);
-	});
-
-	test("accepts the verbose OData shape", async () => {
-		const result = await run({
-			[LOOKUP]: json({
-				d: {
-					ServerRelativeUrl: "/sites/Team/Shared Documents/Plans/Q4 Plan.docx",
-				},
+		expect(
+			await exportSharepointWord(source, {
+				http,
+				permissions,
+				config: defaultConfig,
 			}),
-			[EXPORT]: { contentType: "application/pdf", bytes: PDF },
-		});
-		expect(result).toEqual(PDF);
+		).toEqual(PDF);
+		expect(http.calls).toEqual([EXPORT]);
 	});
 
 	test("missing Microsoft access is permission-denied", async () => {
@@ -110,7 +85,7 @@ describe("exportSharepointWord", () => {
 		expect(
 			await failure(
 				run({
-					[LOOKUP]: {
+					[EXPORT]: {
 						finalUrl: "https://login.microsoftonline.com/x",
 						contentType: "text/html",
 					},
@@ -119,24 +94,17 @@ describe("exportSharepointWord", () => {
 		).toEqual({ kind: "not-logged-in", service: "Microsoft SharePoint" });
 	});
 
-	test("403 on the export is export-forbidden", async () => {
-		expect(
-			await failure(
-				run({
-					[LOOKUP]: json({
-						ServerRelativeUrl:
-							"/sites/Team/Shared Documents/Plans/Q4 Plan.docx",
-					}),
-					[EXPORT]: { status: 403 },
-				}),
-			),
-		).toEqual({ kind: "export-forbidden" });
+	test("403 is export-forbidden", async () => {
+		expect(await failure(run({ [EXPORT]: { status: 403 } }))).toEqual({
+			kind: "export-forbidden",
+		});
 	});
 
-	test("unexpected lookup response is service-error", async () => {
-		expect(await failure(run({ [LOOKUP]: json({ nope: 1 }) }))).toEqual({
-			kind: "service-error",
-			status: 200,
+	test("other HTTP errors name SharePoint, not reMarkable", async () => {
+		expect(await failure(run({ [EXPORT]: { status: 400 } }))).toEqual({
+			kind: "source-error",
+			host: "contoso-my.sharepoint.com",
+			status: 400,
 		});
 	});
 });

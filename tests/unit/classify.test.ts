@@ -65,6 +65,27 @@ describe("classify", () => {
 		});
 	});
 
+	test("SharePoint doc2.aspx behind a /:w:/r sharing prefix", () => {
+		expect(
+			c(
+				"https://contoso-my.sharepoint.com/:w:/r/personal/me_contoso_no/_layouts/15/doc2.aspx?sourcedoc=%7B8810A250-0678-4934-9FFE-338012CAA8AC%7D&file=Document.docx&action=editnew&mobileredirect=true",
+			),
+		).toEqual({
+			kind: "word-sharepoint",
+			siteUrl: "https://contoso-my.sharepoint.com/personal/me_contoso_no",
+			fileGuid: "8810A250-0678-4934-9FFE-338012CAA8AC",
+		});
+		expect(
+			c(
+				"https://contoso.sharepoint.com/:w:/r/sites/Team/_layouts/15/Doc.aspx?sourcedoc={abc}",
+			),
+		).toEqual({
+			kind: "word-sharepoint",
+			siteUrl: "https://contoso.sharepoint.com/sites/Team",
+			fileGuid: "abc",
+		});
+	});
+
 	test("SharePoint suffix comes from config", () => {
 		const config = { ...defaultConfig, sharepointSuffix: "127.0.0.1" };
 		expect(

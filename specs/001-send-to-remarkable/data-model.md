@@ -86,7 +86,7 @@ Each job is independent; concurrent jobs never share state (spec edge case "seve
 
 1. `about:`, `moz-extension:`, `view-source:`, `chrome:` → not sendable.
 2. `docs.google.com/document/(u/N/)?d/<ID>` → `google-doc`.
-3. `*.sharepoint.com/.../_layouts/15/Doc.aspx?sourcedoc={GUID}` → `word-sharepoint`.
+3. `*.sharepoint.com/[/:w:/r]…/_layouts/15/Doc.aspx` or `doc2.aspx` `?sourcedoc={GUID}` → `word-sharepoint` (sharing prefix stripped from `siteUrl`).
 4. `onedrive.live.com`, `1drv.ms`, `word.cloud.microsoft`, `*.officeapps.live.com` → `word-unsupported`.
 5. Tab shows Firefox PDF viewer (URL path ends `.pdf`, or content type `application/pdf`) → `pdf-url`.
 6. `file://` ending `.pdf` → `local-file` (opens Upload-a-file page).
@@ -113,6 +113,7 @@ URL does not return a PDF fails with `unsendable-page`.
 | `too-large` | "The document is larger than reMarkable accepts (100 MB)." |
 | `service-error` | "reMarkable's service returned an error (<status>). It may have changed; try updating the extension." |
 | `unsendable-page` | "This page cannot be sent." |
+| `source-error` | "<host> returned an error (<status>) while downloading the document." (HTTP errors from the document's site; `service-error` is only for the reMarkable cloud) |
 | `invalid-code` | "That code is invalid or expired. Get a new code and try again." (pairing only) |
 | `bad-message` | "Internal error: the extension received an invalid message." |
 

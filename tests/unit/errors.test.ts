@@ -21,6 +21,7 @@ describe("sendErrorKinds", () => {
 				"not-logged-in",
 				"permission-denied",
 				"service-error",
+				"source-error",
 				"too-large",
 				"unsendable-page",
 			].sort(),
@@ -57,13 +58,15 @@ describe("mapHttpStatus", () => {
 		expect(mapHttpStatus(403, url)?.kind).toBe("export-forbidden");
 	});
 
-	test("other 4xx and 5xx are service-error with the status", () => {
+	test("other 4xx and 5xx are source-error naming the site", () => {
 		expect(mapHttpStatus(404, url)).toEqual({
-			kind: "service-error",
+			kind: "source-error",
+			host: "example.com",
 			status: 404,
 		});
 		expect(mapHttpStatus(502, url)).toEqual({
-			kind: "service-error",
+			kind: "source-error",
+			host: "example.com",
 			status: 502,
 		});
 	});
@@ -106,6 +109,10 @@ describe("userMessage", () => {
 			"reMarkable's service returned an error (500). It may have changed; try updating the extension.",
 		],
 		[{ kind: "unsendable-page" }, "This page cannot be sent."],
+		[
+			{ kind: "source-error", host: "contoso.sharepoint.com", status: 400 },
+			"contoso.sharepoint.com returned an error (400) while downloading the document.",
+		],
 		[
 			{ kind: "invalid-code" },
 			"That code is invalid or expired. Get a new code and try again.",

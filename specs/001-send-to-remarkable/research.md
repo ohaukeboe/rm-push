@@ -96,6 +96,12 @@ the plan and must be proven by an early spike or E2E test.
   `*.svc.ms` as well. File path resolved from the `sourcedoc={GUID}` query parameter via
   `/_api/web/GetFileById('<GUID>')?$select=ServerRelativeUrl` (standard REST; chain inferred).
   These are undocumented internal endpoints: expect breakage.
+- **Verified 2026-10-07 (rm-push-bla)** on a real OneDrive for Business account: the
+  `_api/v2.0/sites/<host>:<path>:/drive/root:/…:/content?format=PDF` form above answers
+  `400 invalidRequest`. What works with cookies alone is
+  `<siteUrl>/_api/v2.0/drive/items/<sourcedoc GUID>/content?format=pdf` (also `drive/root:/<path>`
+  and `v2.1`). The extension uses the item-GUID form: one request, no `GetFileById` lookup.
+  Editor URLs may be `doc2.aspx` behind a sharing prefix such as `/:w:/r`.
 - **OneDrive personal** (`onedrive.live.com`, `1drv.ms`): no cookie-based PDF conversion found;
   Graph needs an Entra app registration. **Not supported directly.**
 - **Update 2026-10-07 (rm-push-aqy, abandoned)**: personal documents open at

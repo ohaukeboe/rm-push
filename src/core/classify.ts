@@ -13,7 +13,9 @@ const WORD_UNSUPPORTED_HOSTS = [
 	"word.cloud.microsoft",
 ];
 const GOOGLE_DOC_PATH = /^\/document\/(?:u\/(\d+)\/)?d\/([A-Za-z0-9_-]+)/;
-const SHAREPOINT_DOC = /^(.*?)\/_layouts\/15\/doc\.aspx$/i;
+// Optional sharing-link prefix (/:w:/r, /:w:/g, …), then the site path; Word uses Doc.aspx or doc2.aspx.
+const SHAREPOINT_DOC =
+	/^(?:\/:[a-z]:\/[a-z])?(.*?)\/_layouts\/15\/doc2?\.aspx$/i;
 
 function isSharepointHost(host: string, suffix: string): boolean {
 	return host === suffix.replace(/^\./, "") || host.endsWith(suffix);

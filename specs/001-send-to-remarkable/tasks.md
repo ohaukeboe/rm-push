@@ -191,7 +191,7 @@ Retires plan risks 1 and 2 early.
 
 - [X] T064 [US4] Implement `src/core/google-docs.ts` to pass T061 and register as `google-doc` fetcher; require origins `*://docs.google.com/*` and `*://*.googleusercontent.com/*`, else `permission-denied` naming Google Docs
 - [X] T065 [US4] Popup: label "Google Doc" and **Grant Google access** when those origins are missing (via `src/popup/grant.ts`); options page "Site access" row for Google (contracts/ui.md)
-- [ ] T066 [US4] Make T063 pass; run quickstart manual step 5 against a real Google Doc and record the result (retires plan risk 3; file a beads issue if it fails)
+- [X] T066 [US4] Make T063 pass; run quickstart manual step 5 against a real Google Doc and record the result (retires plan risk 3; file a beads issue if it fails)
 
 **Checkpoint**: US4 independently demonstrable.
 
@@ -213,7 +213,7 @@ Retires plan risks 1 and 2 early.
 
 - [X] T070 [US5] Implement `src/core/sharepoint.ts` to pass T067; register `word-sharepoint` fetcher (requires `*://*.sharepoint.com/*` and `*://*.svc.ms/*`) and `word-unsupported` handling (opens upload page, job `canceled`, no error notification)
 - [X] T071 [US5] Popup label "Word document", **Grant Microsoft access** button, options "Site access" row for Microsoft; on any SharePoint export failure also offer the fallback link to `upload.html?reason=word`
-- [ ] T072 [US5] Make T069 pass; if a SharePoint account is available run quickstart manual step 6 and record the result (plan risk 4)
+- [X] T072 [US5] Make T069 pass; if a SharePoint account is available run quickstart manual step 6 and record the result (plan risk 4)
 
 **Checkpoint**: US5 independently demonstrable.
 
@@ -249,7 +249,7 @@ Retires plan risks 1 and 2 early.
 - [X] T082 Add a performance check `tests/integration/perf.test.ts`: a 10 MB PDF through job runner + fake cloud completes well under the SC-003 budget of 15 s (assert < 5 s locally to leave headroom for real network)
 - [X] T083 Security pass: grep that `deviceToken`/`sessionToken` never appear in `console.*`, notification text, or `src/content/`; confirm manifest permissions match research.md R8 exactly; `web-ext lint --warnings-as-errors` clean
 - [X] T084 Run `bun run ci` from a fresh clone inside `nix-shell` (constitution IV) and fix anything that relied on local state
-- [ ] T085 Run the full quickstart.md manual smoke test against the real reMarkable cloud; file beads issues (`bd create`) for any failing step
+- [X] T085 Run the full quickstart.md manual smoke test against the real reMarkable cloud; file beads issues (`bd create`) for any failing step
 
 ---
 

@@ -10,44 +10,19 @@ type SharepointDoc = Extract<Source, { kind: "word-sharepoint" }>;
 const SERVICE = "Microsoft SharePoint";
 
 /**
- * The undocumented v2.0 conversion endpoint (research R5). The path is
- * relative to the site's default document library, the first folder after
- * the site path.
+ * The undocumented v2.0 conversion endpoint (research R5): the file's GUID
+ * (`sourcedoc`) addresses the item on the site's drive directly. Verified
+ * against a real OneDrive for Business account on 2026-10-07.
  */
-export function sharepointExportUrl(
-	siteUrl: string,
-	serverRelativeUrl: string,
-): string {
-	const site = new URL(siteUrl);
-	const sitePath = site.pathname.replace(/\/$/, "");
-	const inSite = serverRelativeUrl.startsWith(`${sitePath}/`)
-		? serverRelativeUrl.slice(sitePath.length + 1)
-		: serverRelativeUrl.replace(/^\//, "");
-	const inLibrary = inSite
-		.split("/")
-		.slice(1)
-		.map(encodeURIComponent)
-		.join("/");
-	return `${site.origin}/_api/v2.0/sites/${site.hostname}:${sitePath}:/drive/root:/${inLibrary}:/content?format=PDF`;
+export function sharepointExportUrl(siteUrl: string, fileGuid: string): string {
+	const site = siteUrl.replace(/\/$/, "");
+	return `${site}/_api/v2.0/drive/items/${encodeURIComponent(fileGuid)}/content?format=pdf`;
 }
 
 export interface SharepointDeps {
 	http: Http;
 	permissions: Permissions;
 	config: Config;
-}
-
-function serverRelativeUrlOf(body: Uint8Array): string | null {
-	try {
-		const parsed = JSON.parse(new TextDecoder().decode(body)) as {
-			ServerRelativeUrl?: unknown;
-			d?: { ServerRelativeUrl?: unknown };
-		};
-		const value = parsed.ServerRelativeUrl ?? parsed.d?.ServerRelativeUrl;
-		return typeof value === "string" ? value : null;
-	} catch {
-		return null;
-	}
 }
 
 /** Converts a SharePoint / OneDrive for Business Word document to PDF with the user's session. */
@@ -59,18 +34,9 @@ export async function exportSharepointWord(
 		throw new SendFailure({ kind: "permission-denied", site: SERVICE });
 	}
 	try {
-		const lookup = await fetchChecked(
-			deps.http,
-			`${doc.siteUrl}/_api/web/GetFileById('${doc.fileGuid}')?$select=ServerRelativeUrl`,
-			{ headers: { Accept: "application/json;odata=nometadata" } },
-		);
-		const path = serverRelativeUrlOf(lookup.bytes);
-		if (!path) {
-			throw new SendFailure({ kind: "service-error", status: lookup.status });
-		}
 		const result = await fetchChecked(
 			deps.http,
-			sharepointExportUrl(doc.siteUrl, path),
+			sharepointExportUrl(doc.siteUrl, doc.fileGuid),
 		);
 		if (!isPdf(result.contentType, result.bytes)) {
 			throw new SendFailure({ kind: "not-a-pdf" });

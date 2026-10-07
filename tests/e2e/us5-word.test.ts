@@ -23,7 +23,7 @@ describe("US5 Word for the web", () => {
 	test("SharePoint document is exported as PDF", async () => {
 		await s.pair();
 		const tabId = await s.openFakeTab(
-			"/sites/T/_layouts/15/Doc.aspx?sourcedoc=%7B1A2B%7D&file=Q4%20Plan.docx",
+			"/:w:/r/sites/T/_layouts/15/doc2.aspx?sourcedoc=%7B1A2B%7D&file=Q4%20Plan.docx",
 		);
 		await s.message({ type: "send-current", mode: "auto", tabId });
 		await s.waitForUploads(1);
@@ -32,9 +32,7 @@ describe("US5 Word for the web", () => {
 		expect(upload?.bytes).toEqual(MINIMAL_PDF);
 		expect(
 			s.server.requests.some((r) =>
-				r.includes(
-					"/_api/v2.0/sites/127.0.0.1:/sites/T:/drive/root:/Plans/Q4%20Plan.docx:/content",
-				),
+				r.includes("/sites/T/_api/v2.0/drive/items/1A2B/content?format=pdf"),
 			),
 		).toBe(true);
 	});

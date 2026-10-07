@@ -9,6 +9,7 @@ export const sendErrorKinds = [
 	"no-readable-content",
 	"too-large",
 	"service-error",
+	"source-error",
 	"unsendable-page",
 	"bad-message",
 	"invalid-code",
@@ -20,11 +21,18 @@ export type SendError =
 	| { kind: "permission-denied"; site: string }
 	| { kind: "network"; host: string }
 	| { kind: "not-logged-in"; service: string }
+	/** The reMarkable cloud answered with an unexpected status. */
 	| { kind: "service-error"; status: number }
+	/** The site the document comes from answered with an unexpected status. */
+	| { kind: "source-error"; host: string; status: number }
 	| {
 			kind: Exclude<
 				SendErrorKind,
-				"permission-denied" | "network" | "not-logged-in" | "service-error"
+				| "permission-denied"
+				| "network"
+				| "not-logged-in"
+				| "service-error"
+				| "source-error"
 			>;
 	  };
 
@@ -55,7 +63,7 @@ export function mapHttpStatus(
 		return { kind: "not-logged-in", service: host };
 	}
 	if (status === 403) return { kind: "export-forbidden" };
-	if (status >= 400) return { kind: "service-error", status };
+	if (status >= 400) return { kind: "source-error", host, status };
 	return null;
 }
 
@@ -85,6 +93,8 @@ export function userMessage(error: SendError): string {
 			return "The document is larger than reMarkable accepts (100 MB).";
 		case "service-error":
 			return `reMarkable's service returned an error (${error.status}). It may have changed; try updating the extension.`;
+		case "source-error":
+			return `${error.host} returned an error (${error.status}) while downloading the document.`;
 		case "unsendable-page":
 			return "This page cannot be sent.";
 		case "invalid-code":
